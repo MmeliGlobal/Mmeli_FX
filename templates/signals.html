@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mmeli_FX - Signals</title>
+    <style>
+        /* ============================================
+           CSS VARIABLES & THEMING
+           ============================================ */
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-card: #1c2333;
+            --bg-input: #0d1117;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #484f58;
+            --border-color: #30363d;
+            --border-light: #21262d;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-yellow: #d29922;
+            --shadow: 0 8px 32px rgba(0,0,0,0.4);
+            --radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f6fc;
+            --bg-secondary: #ffffff;
+            --bg-card: #f6f8fa;
+            --text-primary: #1f2328;
+            --text-secondary: #656d76;
+            --text-muted: #8b949e;
+            --border-color: #d0d7de;
+            --shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: var(--transition);
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+        .navbar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 0 16px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .navbar-brand {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .navbar-brand span {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 11px;
+            margin-left: 4px;
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            transition: var(--transition);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+        }
+
+        .nav-item:hover {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        .nav-item.active {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        .nav-item .badge {
+            background: var(--accent-red);
+            color: #fff;
+            font-size: 9px;
+            padding: 1px 5px;
+            border-radius: 10px;
+            margin-left: 2px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 12px;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           SIGNALS PAGE
+           ============================================ */
+        .signals-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .signals-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .signals-header h1 {
+            font-size: 20px;
+            color: var(--text-primary);
+        }
+
+        .signals-header h1 span {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 4px 12px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 11px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        .filter-btn.active {
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           SIGNALS LIST
+           ============================================ */
+        .signals-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .signal-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+            border-left: 4px solid var(--text-muted);
+        }
+
+        .signal-card.buy {
+            border-left-color: var(--accent-green);
+        }
+
+        .signal-card.sell {
+            border-left-color: var(--accent-red);
+        }
+
+        .signal-card:hover {
+            border-color: var(--accent-blue);
+        }
+
+        .signal-info {
+            flex: 1;
+        }
+
+        .signal-info .top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .signal-info .symbol {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .signal-info .action {
+            font-weight: 600;
+            font-size: 12px;
+            padding: 2px 12px;
+            border-radius: 4px;
+        }
+
+        .signal-info .action.buy {
+            background: var(--accent-green);
+            color: #000;
+        }
+
+        .signal-info .action.sell {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .signal-info .details {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .signal-info .details strong {
+            color: var(--text-primary);
+        }
+
+        .signal-info .rule {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-style: italic;
+        }
+
+        .signal-right {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .signal-right .rr {
+            color: var(--accent-yellow);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .signal-right .pattern {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .signal-right .strength {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+        }
+
+        .signal-right .strength.high {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .signal-right .strength.medium {
+            border-color: var(--accent-yellow);
+            color: var(--accent-yellow);
+        }
+
+        .signal-right .strength.low {
+            border-color: var(--text-muted);
+            color: var(--text-muted);
+        }
+
+        .no-signals {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 600px) {
+            .signal-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .signal-right {
+                text-align: left;
+                width: 100%;
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .signals-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            body { padding: 8px; }
+            .navbar { flex-wrap: wrap; height: auto; padding: 8px 12px; gap: 8px; }
+            .navbar-menu { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+    NAVIGATION BAR
+    ========================================== -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <a href="/" class="navbar-brand">
+                📊 Mmeli_FX <span>Signals</span>
+            </a>
+            <div class="navbar-menu">
+                <a href="/" class="nav-item">📊 Charts</a>
+                <a href="/signals" class="nav-item active">🔔 Signals <span class="badge" id="signal-badge">0</span></a>
+                <a href="/rules" class="nav-item">⚙️ Rules</a>
+<a href="/history" class="nav-item">📜 History</a>
+            </div>
+        </div>
+
+        <div class="nav-right">
+            <button class="btn-icon" onclick="toggleTheme()">🌓</button>
+            <span class="btn-icon" style="font-size:10px;color:var(--accent-green);">🟢 Online</span>
+        </div>
+    </nav>
+
+    <!-- ==========================================
+    SIGNALS CONTENT
+    ========================================== -->
+    <div class="signals-container">
+
+        <div class="signals-header">
+            <h1>📈 Trading Signals <span>Live trading signals from all symbols</span></h1>
+            <div class="filter-bar">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="buy">BUY</button>
+                <button class="filter-btn" data-filter="sell">SELL</button>
+                <button class="filter-btn" data-filter="high">High Strength</button>
+            </div>
+        </div>
+
+        <div class="signals-list" id="signals-container">
+            <div class="loading">⏳ Loading signals...</div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // STATE
+        // ============================================
+        let currentTheme = 'dark';
+        let activeFilter = 'all';
+
+        // ============================================
+        // THEME TOGGLE
+        // ============================================
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            currentTheme = next;
+        }
+
+        // ============================================
+        // FILTER BUTTONS
+        // ============================================
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                activeFilter = this.dataset.filter;
+                loadSignals();
+            });
+        });
+
+        // ============================================
+        // LOAD SIGNALS
+        // ============================================
+        function loadSignals() {
+            const container = document.getElementById('signals-container');
+            container.innerHTML = '<div class="loading">⏳ Loading signals...</div>';
+
+            fetch('/api/signals')
+                .then(r => r.json())
+                .then(data => {
+                    let signals = data.signals || [];
+                    document.getElementById('signal-badge').textContent = signals.length;
+
+                    // Apply filter
+                    if (activeFilter === 'buy') {
+                        signals = signals.filter(s => s.action === 'BUY');
+                    } else if (activeFilter === 'sell') {
+                        signals = signals.filter(s => s.action === 'SELL');
+                    } else if (activeFilter === 'high') {
+                        signals = signals.filter(s => s.strength === 'HIGH');
+                    }
+
+                    if (signals.length === 0) {
+                        container.innerHTML = '<div class="no-signals">📭 No signals found</div>';
+                        return;
+                    }
+
+                    let html = '';
+                    signals.forEach(s => {
+                        const actionClass = s.action.toLowerCase();
+                        const strengthClass = (s.strength || 'medium').toLowerCase();
+                        html += `
+                            <div class="signal-card ${actionClass}">
+                                <div class="signal-info">
+                                    <div class="top">
+                                        <span class="symbol">${s.symbol}</span>
+                                        <span class="action ${actionClass}">${s.action}</span>
+                                        <span class="strength ${strengthClass}">${s.strength || 'MEDIUM'}</span>
+                                    </div>
+                                    <div class="details">
+                                        <strong>Pattern:</strong> ${s.pattern || 'N/A'} &nbsp;|&nbsp;
+                                        <strong>Entry:</strong> ${s.entry ? s.entry.toFixed(5) : 'N/A'} &nbsp;|&nbsp;
+                                        <strong>SL:</strong> ${s.stop_loss ? s.stop_loss.toFixed(5) : 'N/A'} &nbsp;|&nbsp;
+                                        <strong>TP:</strong> ${s.take_profit ? s.take_profit.toFixed(5) : 'N/A'}
+                                    </div>
+                                    ${s.rule ? `<div class="rule">📋 ${s.rule}</div>` : ''}
+                                </div>
+                                <div class="signal-right">
+                                    <div class="rr">📊 1:${s.risk_reward || 'N/A'}</div>
+                                    <div class="pattern">${s.pattern || ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                })
+                .catch(err => {
+                    container.innerHTML = '<div class="no-signals">❌ Error loading signals</div>';
+                });
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        loadSignals();
+        setInterval(loadSignals, 30000);
+    </script>
+</body>
+</html>

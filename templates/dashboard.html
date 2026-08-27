@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mmeli_FX - Mobile Trading</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        /* ============================================
+           MOBILE-FIRST CSS
+           ============================================ */
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --bg-card: #1c2333;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --text-muted: #484f58;
+            --border-color: #30363d;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-yellow: #d29922;
+            --radius: 10px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f6fc;
+            --bg-secondary: #ffffff;
+            --bg-card: #f6f8fa;
+            --text-primary: #1f2328;
+            --text-secondary: #656d76;
+            --text-muted: #8b949e;
+            --border-color: #d0d7de;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 10px;
+            padding-bottom: calc(60px + var(--safe-bottom));
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+
+        /* ============================================
+           NAVIGATION - MOBILE FRIENDLY
+           ============================================ */
+        .navbar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .navbar-brand span {
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .navbar-menu {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            padding: 5px 10px;
+            border-radius: var(--radius);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        .nav-item .badge {
+            background: var(--accent-red);
+            color: #fff;
+            font-size: 8px;
+            padding: 1px 5px;
+            border-radius: 10px;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .btn-icon {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 5px 10px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 14px;
+            min-height: 36px;
+            min-width: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: inherit;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           CONTROLS - MOBILE FRIENDLY
+           ============================================ */
+        .controls-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 8px 10px;
+        }
+
+        .controls-row select {
+            flex: 1;
+            min-width: 80px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            min-height: 40px;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b949e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+
+        .controls-row select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .controls-row select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           PRICE LINE - MOBILE
+           ============================================ */
+        .price-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .price-line .symbol {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .price-line .price {
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .price-line .price.up { color: var(--accent-green); }
+        .price-line .price.down { color: var(--accent-red); }
+
+        .price-line .change {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .price-line .change.up { color: var(--accent-green); }
+        .price-line .change.down { color: var(--accent-red); }
+
+        /* ============================================
+           CHART - MOBILE
+           ============================================ */
+        .chart-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 10px;
+            margin-bottom: 10px;
+            touch-action: none;
+        }
+
+        #chart {
+            width: 100%;
+            height: 350px;
+            min-height: 250px;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 6px 0;
+            border-top: 1px solid var(--border-color);
+            margin-top: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 2px;
+            border-radius: 1px;
+        }
+
+        /* ============================================
+           SECTIONS - COLLAPSIBLE
+           ============================================ */
+        .section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            cursor: pointer;
+            user-select: none;
+            min-height: 44px;
+        }
+
+        .section-header:active {
+            opacity: 0.6;
+        }
+
+        .section-header .title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .section-header .toggle-icon {
+            font-size: 16px;
+            color: var(--text-muted);
+            transition: transform 0.3s;
+        }
+
+        .section-header .toggle-icon.open {
+            transform: rotate(180deg);
+        }
+
+        .section-body {
+            padding: 0 14px 14px 14px;
+            display: none;
+        }
+
+        .section-body.open {
+            display: block;
+        }
+
+        /* ============================================
+           SIGNALS - MOBILE
+           ============================================ */
+        .signal-card {
+            background: var(--bg-card);
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            border-left: 3px solid var(--text-muted);
+            font-size: 12px;
+        }
+
+        .signal-card.buy { border-left-color: var(--accent-green); }
+        .signal-card.sell { border-left-color: var(--accent-red); }
+
+        .signal-card .signal-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .signal-card .signal-symbol { font-weight: 600; font-size: 14px; }
+        .signal-card .signal-action {
+            font-weight: 600;
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 4px;
+        }
+        .signal-card .signal-action.buy { background: var(--accent-green); color: #000; }
+        .signal-card .signal-action.sell { background: var(--accent-red); color: #fff; }
+        .signal-card .signal-details { font-size: 10px; color: var(--text-secondary); }
+        .signal-card .signal-details strong { color: var(--text-primary); }
+        .signal-card .signal-rr { color: var(--accent-yellow); font-weight: 600; font-size: 11px; }
+
+        .no-signals {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        /* ============================================
+           ANALYSIS - MOBILE
+           ============================================ */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .analysis-grid strong { color: var(--text-primary); }
+        .analysis-grid .full { grid-column: span 2; }
+        .analysis-grid .value.bullish { color: var(--accent-green); }
+        .analysis-grid .value.bearish { color: var(--accent-red); }
+        .analysis-grid .value.ranging { color: var(--accent-yellow); }
+
+        .patterns-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+
+        .pattern-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 500;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .pattern-badge.high { border-color: var(--accent-green); color: var(--accent-green); }
+        .pattern-badge.medium { border-color: var(--accent-yellow); color: var(--accent-yellow); }
+        .pattern-badge.low { border-color: var(--text-muted); color: var(--text-muted); }
+
+        /* ============================================
+           LOADING
+           ============================================ */
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ============================================
+           BOTTOM NAV - MOBILE
+           ============================================ */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 0 calc(6px + var(--safe-bottom));
+            z-index: 999;
+            backdrop-filter: blur(10px);
+        }
+
+        .bottom-nav a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 9px;
+            padding: 4px 8px;
+            border-radius: var(--radius);
+            min-width: 44px;
+            min-height: 44px;
+            justify-content: center;
+        }
+
+        .bottom-nav a .icon {
+            font-size: 18px;
+        }
+
+        .bottom-nav a.active {
+            color: var(--accent-blue);
+            background: var(--bg-card);
+        }
+
+        .bottom-nav a .badge {
+            background: var(--accent-red);
+            color: #fff;
+            font-size: 8px;
+            padding: 0 5px;
+            border-radius: 10px;
+            position: absolute;
+            top: 2px;
+            right: -6px;
+        }
+
+        .bottom-nav a {
+            position: relative;
+        }
+
+        /* ============================================
+           RESPONSIVE TWEAKS
+           ============================================ */
+        @media (max-width: 400px) {
+            #chart { height: 280px; }
+            .controls-row select { font-size: 12px; padding: 6px 8px; min-height: 36px; }
+            .navbar-brand { font-size: 14px; }
+            .nav-item { font-size: 10px; padding: 4px 8px; min-height: 32px; }
+            .price-line .price { font-size: 16px; }
+            .analysis-grid { grid-template-columns: 1fr 1fr; font-size: 10px; }
+            .signal-card { font-size: 11px; padding: 8px 10px; }
+        }
+
+        @media (max-width: 360px) {
+            #chart { height: 220px; }
+            .controls-row { flex-direction: column; }
+            .controls-row select { min-width: 100%; }
+        }
+
+        /* ============================================
+           HIDE DESKTOP ELEMENTS ON MOBILE
+           ============================================ */
+        .desktop-only {
+            display: none !important;
+        }
+
+        @media (min-width: 768px) {
+            .desktop-only {
+                display: flex !important;
+            }
+            body { padding: 20px; }
+            #chart { height: 500px; }
+            .bottom-nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ==========================================
+    NAVIGATION
+    ========================================== -->
+    <nav class="navbar">
+        <div class="navbar-brand">📊 Mmeli_FX <span>Mobile</span></div>
+        <div class="navbar-menu">
+            <button class="nav-item active" onclick="window.location.href='/'">📊</button>
+            <button class="nav-item" onclick="window.location.href='/signals'">🔔 <span class="badge" id="signal-badge">0</span></button>
+            <button class="nav-item" onclick="window.location.href='/history'">📜</button>
+            <button class="nav-item" onclick="window.location.href='/rules'">⚙️</button>
+        </div>
+        <div class="nav-right">
+            <button class="btn-icon" onclick="toggleTheme()">🌓</button>
+        </div>
+    </nav>
+
+    <!-- ==========================================
+    CONTROLS
+    ========================================== -->
+    <div class="controls-row">
+        <select id="symbol-selector">
+            <option value="EURUSD">EURUSD</option>
+            <option value="GBPUSD">GBPUSD</option>
+            <option value="USDJPY">USDJPY</option>
+            <option value="AUDUSD">AUDUSD</option>
+            <option value="USDCAD">USDCAD</option>
+            <option value="NZDUSD">NZDUSD</option>
+            <option value="XAUUSD">🪙 XAUUSD</option>
+            <option value="XAGUSD">💎 XAGUSD</option>
+        </select>
+
+        <select id="timeframe-selector">
+            <option value="1m">1m</option>
+            <option value="5m">5m</option>
+            <option value="15m" selected>15m</option>
+            <option value="30m">30m</option>
+            <option value="1h">1h</option>
+            <option value="4h">4h</option>
+            <option value="1d">1d</option>
+        </select>
+    </div>
+
+    <!-- ==========================================
+    PRICE LINE
+    ========================================== -->
+    <div class="price-line" id="price-line">
+        <span class="symbol" id="price-symbol">EURUSD</span>
+        <span class="price" id="price-value">-</span>
+        <span class="change" id="price-change">-</span>
+    </div>
+
+    <!-- ==========================================
+    CHART
+    ========================================== -->
+    <div class="chart-container">
+        <div id="chart"><div class="loading">⏳ Loading chart...</div></div>
+        <div class="chart-legend">
+            <span class="legend-item"><span class="legend-color" style="background:var(--accent-green);"></span> Sup</span>
+            <span class="legend-item"><span class="legend-color" style="background:var(--accent-red);"></span> Res</span>
+            <span class="legend-item"><span class="legend-color" style="background:var(--accent-purple);"></span> Fib</span>
+            <span class="legend-item"><span class="legend-color" style="background:#f0883e;"></span> SMA</span>
+            <span class="legend-item"><span class="legend-color" style="background:var(--accent-yellow);"></span> Patt</span>
+        </div>
+    </div>
+
+    <!-- ==========================================
+    SIGNALS SECTION (Collapsible)
+    ========================================== -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection('signals-section')">
+            <span class="title">🔔 Signals <span id="signal-count">0</span></span>
+            <span class="toggle-icon open" id="signals-toggle">▼</span>
+        </div>
+        <div class="section-body open" id="signals-section">
+            <div id="signals-container"><div class="loading">⏳ Loading...</div></div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+    ANALYSIS SECTION (Collapsible)
+    ========================================== -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection('analysis-section')">
+            <span class="title">📊 Analysis</span>
+            <span class="toggle-icon" id="analysis-toggle">▼</span>
+        </div>
+        <div class="section-body" id="analysis-section">
+            <div class="analysis-grid" id="analysis-grid">
+                <div><strong>Trend:</strong> <span id="analysis-trend">-</span></div>
+                <div><strong>Support:</strong> <span id="analysis-support">-</span></div>
+                <div><strong>Resistance:</strong> <span id="analysis-resistance">-</span></div>
+                <div><strong>Fib 50%:</strong> <span id="analysis-fib50">-</span></div>
+                <div><strong>Fib 61.8%:</strong> <span id="analysis-fib618">-</span></div>
+                <div><strong>SMA 20:</strong> <span id="analysis-sma">-</span></div>
+                <div class="full"><strong>Patterns:</strong> <span id="analysis-patterns">None</span></div>
+                <div class="full" style="color:var(--accent-yellow);" id="analysis-signal">📭 No active signals</div>
+                <div class="patterns-display" id="patterns-display"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+    BOTTOM NAVIGATION
+    ========================================== -->
+    <div class="bottom-nav">
+        <a href="/" class="active">
+            <span class="icon">📊</span>
+            <span>Charts</span>
+        </a>
+        <a href="/signals">
+            <span class="icon">🔔</span>
+            <span>Signals</span>
+            <span class="badge" id="bottom-badge">0</span>
+        </a>
+        <a href="/history">
+            <span class="icon">📜</span>
+            <span>History</span>
+        </a>
+        <a href="/rules">
+            <span class="icon">⚙️</span>
+            <span>Rules</span>
+        </a>
+    </div>
+
+    <script>
+        // ============================================
+        // STATE
+        // ============================================
+        let currentSymbol = 'EURUSD';
+        let currentTF = '15m';
+        let isLoading = false;
+        let chartData = null;
+        let chartLayout = null;
+
+        // ============================================
+        // DROPDOWNS
+        // ============================================
+        document.getElementById('symbol-selector').addEventListener('change', function() {
+            currentSymbol = this.value;
+            loadChart(currentSymbol, currentTF);
+        });
+
+        document.getElementById('timeframe-selector').addEventListener('change', function() {
+            currentTF = this.value;
+            loadChart(currentSymbol, currentTF);
+        });
+
+        // ============================================
+        // TOGGLE SECTIONS
+        // ============================================
+        function toggleSection(id) {
+            const body = document.getElementById(id);
+            const toggle = document.getElementById(id.replace('-section', '-toggle'));
+            if (body) {
+                body.classList.toggle('open');
+                if (toggle) toggle.classList.toggle('open');
+            }
+        }
+
+        // ============================================
+        // THEME TOGGLE
+        // ============================================
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+        }
+
+        // ============================================
+        // LOAD CHART
+        // ============================================
+        function loadChart(symbol, tf) {
+            if (isLoading) return;
+            isLoading = true;
+
+            document.getElementById('price-symbol').textContent = symbol;
+            document.getElementById('chart').innerHTML = '<div class="loading">⏳ Loading...</div>';
+
+            fetch('/api/analysis/' + symbol + '?tf=' + tf)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success' && data.data) {
+                        renderChart(data.data, symbol);
+                        updateAnalysis(data.data);
+                        updatePriceLine(data.data);
+                    } else {
+                        document.getElementById('chart').innerHTML = '<div style="color:var(--accent-red);text-align:center;padding:20px;">❌ No data</div>';
+                    }
+                    isLoading = false;
+                })
+                .catch(err => {
+                    document.getElementById('chart').innerHTML = '<div style="color:var(--accent-red);text-align:center;padding:20px;">❌ Error</div>';
+                    isLoading = false;
+                });
+        }
+
+        // ============================================
+        // UPDATE PRICE LINE
+        // ============================================
+        function updatePriceLine(data) {
+            const candles = data.chart_data?.candles || [];
+            if (candles.length === 0) return;
+
+            const last = candles[candles.length - 1];
+            const price = last.close;
+            const prev = candles.length > 1 ? candles[candles.length - 2].close : price;
+            const change = ((price - prev) / prev * 100);
+
+            const priceEl = document.getElementById('price-value');
+            priceEl.textContent = price.toFixed(5);
+            priceEl.className = 'price ' + (change >= 0 ? 'up' : 'down');
+
+            const changeEl = document.getElementById('price-change');
+            changeEl.textContent = (change >= 0 ? '+' : '') + change.toFixed(2) + '%';
+            changeEl.className = 'change ' + (change >= 0 ? 'up' : 'down');
+        }
+
+        // ============================================
+        // RENDER CHART - SIMPLIFIED FOR MOBILE
+        // ============================================
+        function renderChart(data, symbol) {
+            const candles = data.chart_data?.candles || [];
+            if (candles.length === 0) return;
+
+            const dates = candles.map(c => c.time);
+            const opens = candles.map(c => c.open);
+            const highs = candles.map(c => c.high);
+            const lows = candles.map(c => c.low);
+            const closes = candles.map(c => c.close);
+
+            const traces = [];
+
+            // Candlesticks
+            traces.push({
+                type: 'candlestick',
+                x: dates,
+                open: opens,
+                high: highs,
+                low: lows,
+                close: closes,
+                name: 'Price',
+                increasing: { line: { color: '#3fb950' }, fillcolor: '#3fb950' },
+                decreasing: { line: { color: '#f85149' }, fillcolor: '#f85149' },
+                showlegend: false
+            });
+
+            // Support & Resistance
+            const levels = data.chart_data?.levels || {};
+            (levels.support || []).forEach((level) => {
+                traces.push({
+                    type: 'scatter',
+                    mode: 'lines',
+                    x: [dates[0], dates[dates.length - 1]],
+                    y: [level, level],
+                    line: { color: 'rgba(63,185,80,0.5)', width: 1, dash: 'dash' },
+                    name: 'Support',
+                    showlegend: false
+                });
+            });
+
+            (levels.resistance || []).forEach((level) => {
+                traces.push({
+                    type: 'scatter',
+                    mode: 'lines',
+                    x: [dates[0], dates[dates.length - 1]],
+                    y: [level, level],
+                    line: { color: 'rgba(248,81,73,0.5)', width: 1, dash: 'dash' },
+                    name: 'Resistance',
+                    showlegend: false
+                });
+            });
+
+            // Fibonacci
+            const fib = levels.fibonacci || {};
+            ['50', '61.8'].forEach((key) => {
+                if (fib[key]) {
+                    traces.push({
+                        type: 'scatter',
+                        mode: 'lines',
+                        x: [dates[0], dates[dates.length - 1]],
+                        y: [fib[key], fib[key]],
+                        line: { color: 'rgba(210,153,34,0.4)', width: 0.5, dash: 'dot' },
+                        name: `Fib ${key}%`,
+                        showlegend: false
+                    });
+                }
+            });
+
+            // SMA
+            const sma = data.sma || {};
+            if (sma.sma20) {
+                traces.push({
+                    type: 'scatter',
+                    mode: 'lines',
+                    x: dates,
+                    y: Array(dates.length).fill(sma.sma20),
+                    line: { color: 'rgba(240,136,62,0.5)', width: 1 },
+                    name: 'SMA 20',
+                    showlegend: false
+                });
+            }
+
+            // Patterns
+            const patterns = data.patterns || [];
+            patterns.forEach(p => {
+                const isBullish = p.direction === 'BULLISH';
+                const lastCandle = candles[candles.length - 1];
+                traces.push({
+                    type: 'scatter',
+                    mode: 'markers',
+                    x: [lastCandle.time],
+                    y: [isBullish ? lastCandle.low : lastCandle.high],
+                    marker: {
+                        size: 10,
+                        color: isBullish ? '#3fb950' : '#f85149',
+                        symbol: 'star',
+                        line: { color: '#fff', width: 1 }
+                    },
+                    name: p.type,
+                    hovertext: p.type,
+                    hoverinfo: 'text',
+                    showlegend: false
+                });
+            });
+
+            // Layout - Mobile optimized
+            const layout = {
+                template: 'plotly_dark',
+                xaxis: {
+                    gridcolor: 'rgba(48,54,61,0.1)',
+                    type: 'date',
+                    tickformat: '%H:%M',
+                    rangeslider: { visible: false },
+                    showgrid: true,
+                    gridwidth: 0.3,
+                    zeroline: false,
+                },
+                yaxis: {
+                    gridcolor: 'rgba(48,54,61,0.1)',
+                    side: 'right',
+                    showgrid: true,
+                    gridwidth: 0.3,
+                    zeroline: false,
+                },
+                hovermode: 'x unified',
+                margin: { l: 5, r: 10, t: 5, b: 20 },
+                legend: { orientation: 'h', y: -0.2, font: { size: 8 }, bgcolor: 'rgba(0,0,0,0)' },
+                height: 350,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                dragmode: 'zoom',
+                scrollZoom: true,
+                doubleClick: 'reset+autosize',
+                modebar: {
+                    orientation: 'h',
+                    bgcolor: 'rgba(0,0,0,0)',
+                    color: 'var(--text-secondary)',
+                    activecolor: 'var(--accent-blue)',
+                    buttons: [
+                        { name: 'zoomIn', icon: '🔍+', click: function(gd) { Plotly.relayout(gd, { 'xaxis.range': [gd.layout.xaxis.range[0] * 0.9, gd.layout.xaxis.range[1] * 1.1] }); } },
+                        { name: 'zoomOut', icon: '🔍-', click: function(gd) { Plotly.relayout(gd, { 'xaxis.range': [gd.layout.xaxis.range[0] * 1.1, gd.layout.xaxis.range[1] * 0.9] }); } },
+                        { name: 'reset', icon: '⟲', click: function(gd) { Plotly.relayout(gd, { 'xaxis.autorange': true, 'yaxis.autorange': true }); } }
+                    ]
+                }
+            };
+
+            chartData = traces;
+            chartLayout = layout;
+
+            Plotly.newPlot(document.getElementById('chart'), traces, layout, {
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false,
+                scrollZoom: true,
+            });
+        }
+
+        // ============================================
+        // UPDATE ANALYSIS
+        // ============================================
+        function updateAnalysis(data) {
+            const trend = data.trend || 'RANGING';
+            const trendEl = document.getElementById('analysis-trend');
+            trendEl.textContent = trend;
+            trendEl.className = 'value ' + trend.toLowerCase();
+
+            document.getElementById('analysis-support').textContent =
+                (data.support_levels || []).map(s => s.toFixed(5)).join(', ') || 'None';
+            document.getElementById('analysis-resistance').textContent =
+                (data.resistance_levels || []).map(r => r.toFixed(5)).join(', ') || 'None';
+
+            const fib = data.fibonacci || {};
+            document.getElementById('analysis-fib50').textContent = fib['50'] ? fib['50'].toFixed(5) : '-';
+            document.getElementById('analysis-fib618').textContent = fib['61.8'] ? fib['61.8'].toFixed(5) : '-';
+
+            const sma = data.sma || {};
+            document.getElementById('analysis-sma').textContent = sma.sma20 ? sma.sma20.toFixed(5) : '-';
+
+            const patterns = data.patterns || [];
+            document.getElementById('analysis-patterns').textContent = patterns.length > 0 ?
+                patterns.map(p => p.type).join(', ') : 'None';
+
+            // Display patterns as badges
+            const container = document.getElementById('patterns-display');
+            if (patterns.length === 0) {
+                container.innerHTML = '';
+            } else {
+                let html = '';
+                patterns.forEach(p => {
+                    const strength = (p.strength || 'MEDIUM').toLowerCase();
+                    html += `<span class="pattern-badge ${strength}">${p.type}</span>`;
+                });
+                container.innerHTML = html;
+            }
+
+            // Signals
+            const signals = data.signals || [];
+            const signalEl = document.getElementById('analysis-signal');
+            if (signals.length > 0) {
+                const s = signals[0];
+                signalEl.textContent = '🔔 ' + s.action + ' ' + s.pattern + ' (RR 1:' + s.risk_reward + ')';
+                signalEl.style.color = s.action === 'BUY' ? 'var(--accent-green)' : 'var(--accent-red)';
+            } else {
+                signalEl.textContent = '📭 No active signals';
+                signalEl.style.color = 'var(--accent-yellow)';
+            }
+        }
+
+        // ============================================
+        // LOAD SIGNALS
+        // ============================================
+        function loadSignals() {
+            fetch('/api/signals?tf=' + currentTF)
+                .then(r => r.json())
+                .then(data => {
+                    const signals = data.signals || [];
+                    const container = document.getElementById('signals-container');
+                    document.getElementById('signal-count').textContent = signals.length;
+                    document.getElementById('signal-badge').textContent = signals.length;
+                    document.getElementById('bottom-badge').textContent = signals.length;
+
+                    if (signals.length === 0) {
+                        container.innerHTML = '<div class="no-signals">📭 No active signals</div>';
+                        return;
+                    }
+
+                    let html = '';
+                    signals.forEach(s => {
+                        const actionClass = s.action.toLowerCase();
+                        html += `
+                            <div class="signal-card ${actionClass}">
+                                <div class="signal-top">
+                                    <span class="signal-symbol">${s.symbol}</span>
+                                    <span class="signal-action ${actionClass}">${s.action}</span>
+                                </div>
+                                <div class="signal-details"><strong>Pattern:</strong> ${s.pattern} (${s.strength || 'MEDIUM'})</div>
+                                <div class="signal-details"><strong>Entry:</strong> ${s.entry.toFixed(5)} | <strong>SL:</strong> ${s.stop_loss.toFixed(5)} | <strong>TP:</strong> ${s.take_profit.toFixed(5)}</div>
+                                <div class="signal-rr">📊 1:${s.risk_reward}</div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                })
+                .catch(() => {
+                    document.getElementById('signals-container').innerHTML =
+                        '<div class="no-signals">❌ Error loading signals</div>';
+                });
+        }
+
+        // ============================================
+        // STATUS
+        // ============================================
+        function updateStatus() {
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(() => {})
+                .catch(() => {});
+        }
+
+        // ============================================
+        // AUTO REFRESH
+        // ============================================
+        function refreshAll() {
+            loadSignals();
+            updateStatus();
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        loadChart('EURUSD', '15m');
+        loadSignals();
+        updateStatus();
+
+        setInterval(refreshAll, 30000);
+
+        window.addEventListener('resize', function() {
+            const chart = document.getElementById('chart');
+            if (chart.data) {
+                Plotly.Plots.resize(chart);
+            }
+        });
+
+        console.log('📱 Mmeli_FX Mobile Trading Platform Loaded');
+    </script>
+</body>
+</html>
