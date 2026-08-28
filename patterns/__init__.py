@@ -1,6 +1,5 @@
 """
-Pattern Detection Module
-All pattern detection functions
+Pattern Detection Module - No pandas required!
 """
 
 from patterns.candlestick import CandlePatternDetector

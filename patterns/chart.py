@@ -1,9 +1,8 @@
 """
-Chart Pattern Detection
+Chart Pattern Detection - NO PANDAS REQUIRED!
+Works with lists of dictionaries
 """
 
-import pandas as pd
-import numpy as np
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -13,73 +12,78 @@ class ChartPatternDetector:
     def __init__(self):
         self.patterns = []
         
-    def detect_all_patterns(self, df):
-        """Detect chart patterns"""
+    def detect_all_patterns(self, candles):
+        """Detect chart patterns - No pandas!"""
         self.patterns = []
         
-        if len(df) < 20:
+        if not candles or len(candles) < 30:
             return self.patterns
         
         try:
-            highs = df['High'].values
-            lows = df['Low'].values
+            # Get highs and lows
+            highs = [c['high'] for c in candles]
+            lows = [c['low'] for c in candles]
             
-            # Find swing points without scipy
+            # Find swing points
             swing_highs = self._find_swing_highs(highs)
             swing_lows = self._find_swing_lows(lows)
             
-            if len(swing_highs) < 3 or len(swing_lows) < 3:
+            if len(swing_highs) < 4 or len(swing_lows) < 4:
                 return self.patterns
             
             # Check for Double Bottom
             if len(swing_lows) >= 4:
                 last_lows = swing_lows[-4:]
-                low1 = df['Low'].iloc[last_lows[0]]
-                low3 = df['Low'].iloc[last_lows[2]]
-                if abs(low1 - low3) < 0.002 * low1:
-                    self.patterns.append({
-                        'type': 'DOUBLE_BOTTOM',
-                        'strength': 'HIGH',
-                        'direction': 'BULLISH',
-                        'price': df['Close'].iloc[-1]
-                    })
+                if len(last_lows) >= 4:
+                    low1 = lows[last_lows[0]]
+                    low3 = lows[last_lows[2]]
+                    if abs(low1 - low3) < 0.002 * low1:
+                        self.patterns.append({
+                            'type': 'DOUBLE_BOTTOM',
+                            'strength': 'HIGH',
+                            'direction': 'BULLISH',
+                            'price': candles[-1]['close']
+                        })
             
             # Check for Double Top
             if len(swing_highs) >= 4:
                 last_highs = swing_highs[-4:]
-                high1 = df['High'].iloc[last_highs[0]]
-                high3 = df['High'].iloc[last_highs[2]]
-                if abs(high1 - high3) < 0.002 * high1:
-                    self.patterns.append({
-                        'type': 'DOUBLE_TOP',
-                        'strength': 'HIGH',
-                        'direction': 'BEARISH',
-                        'price': df['Close'].iloc[-1]
-                    })
+                if len(last_highs) >= 4:
+                    high1 = highs[last_highs[0]]
+                    high3 = highs[last_highs[2]]
+                    if abs(high1 - high3) < 0.002 * high1:
+                        self.patterns.append({
+                            'type': 'DOUBLE_TOP',
+                            'strength': 'HIGH',
+                            'direction': 'BEARISH',
+                            'price': candles[-1]['close']
+                        })
             
             # Check for Bull Flag
-            recent_range = df['High'].iloc[-20:].max() - df['Low'].iloc[-20:].min()
-            last_10_range = df['High'].iloc[-10:].max() - df['Low'].iloc[-10:].min()
-            if last_10_range < recent_range * 0.3:
-                first_5_avg = df['Close'].iloc[-20:-15].mean()
-                last_5_avg = df['Close'].iloc[-5:].mean()
-                if last_5_avg > first_5_avg * 1.02:
-                    self.patterns.append({
-                        'type': 'BULL_FLAG',
-                        'strength': 'MEDIUM',
-                        'direction': 'BULLISH',
-                        'price': df['Close'].iloc[-1]
-                    })
-                elif last_5_avg < first_5_avg * 0.98:
-                    self.patterns.append({
-                        'type': 'BEAR_FLAG',
-                        'strength': 'MEDIUM',
-                        'direction': 'BEARISH',
-                        'price': df['Close'].iloc[-1]
-                    })
+            if len(candles) >= 20:
+                recent_range = max(highs[-20:]) - min(lows[-20:])
+                last_10_range = max(highs[-10:]) - min(lows[-10:])
+                if last_10_range < recent_range * 0.3:
+                    first_5_avg = sum(highs[-20:-15]) / 5
+                    last_5_avg = sum(highs[-5:]) / 5
+                    if last_5_avg > first_5_avg * 1.02:
+                        self.patterns.append({
+                            'type': 'BULL_FLAG',
+                            'strength': 'MEDIUM',
+                            'direction': 'BULLISH',
+                            'price': candles[-1]['close']
+                        })
+                    elif last_5_avg < first_5_avg * 0.98:
+                        self.patterns.append({
+                            'type': 'BEAR_FLAG',
+                            'strength': 'MEDIUM',
+                            'direction': 'BEARISH',
+                            'price': candles[-1]['close']
+                        })
             
             return self.patterns
-        except:
+        except Exception as e:
+            logger.error(f"Chart pattern error: {e}")
             return self.patterns
     
     def _find_swing_highs(self, highs, window=5):
