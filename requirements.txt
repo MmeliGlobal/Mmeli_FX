@@ -1,5 +1,6 @@
 Flask==2.3.3
-websocket-client==1.6.1
-requests==2.31.0
-python-dotenv==1.0.0
-plotly==5.17.0
+pandas==2.1.4
+numpy==1.26.2
+yfinance==0.2.38
+plotly==5.18.0
+gunicorn==20.1.0

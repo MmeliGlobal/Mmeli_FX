@@ -1,16 +1,12 @@
 """
-Broker API - Uses Deriv Public WebSocket with Caching
-NO PANDAS REQUIRED - Uses built-in Python data structures
+Broker API - Yahoo Finance
+Works everywhere! No WebSocket needed.
 """
 
+import pandas as pd
 import logging
-import time
-import json
-import websocket
-import threading
+import yfinance as yf
 from datetime import datetime
-from collections import OrderedDict
-from config import CACHE_DURATION, MAX_CACHE_SIZE
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -18,261 +14,126 @@ logger = logging.getLogger(__name__)
 class BrokerAPI:
     def __init__(self):
         self.connected = False
-        self.source = 'deriv_public'
-        self.ws = None
-        self.responses = []
-        self.is_running = False
-        # Cache for speed
-        self.cache = OrderedDict()
+        self.source = 'yahoo'
+        self.cache = {}
         self.cache_duration = 60
-        self.price_cache = {}
-        self.price_cache_time = {}
         
     def connect(self, app_id=None, token=None):
-        """Connect to Deriv Public WebSocket - NO CREDENTIALS NEEDED!"""
+        """Connect to Yahoo Finance"""
         try:
-            ws_url = "wss://api.derivws.com/trading/v1/options/ws/public"
-            
-            logger.info(f"🔌 Connecting to Public WebSocket...")
-            
-            self.ws = websocket.WebSocketApp(
-                ws_url,
-                on_open=self.on_open,
-                on_message=self.on_message,
-                on_error=self.on_error,
-                on_close=self.on_close
-            )
-            
-            self.is_running = True
-            thread = threading.Thread(target=self.ws.run_forever, daemon=True)
-            thread.start()
-            
-            timeout = 10
-            while timeout > 0:
-                if self.connected:
-                    logger.info("✅ Connected to Deriv Public WebSocket")
-                    return True
-                time.sleep(0.5)
-                timeout -= 0.5
-            
-            logger.error("❌ Connection timeout")
-            return False
-            
-        except Exception as e:
-            logger.error(f"❌ WebSocket error: {e}")
-            return False
-    
-    def on_open(self, ws):
-        logger.info("✅ WebSocket opened")
-        self.connected = True
-    
-    def on_message(self, ws, message):
-        try:
-            data = json.loads(message)
-            self.responses.append(data)
-            if len(self.responses) > 500:
-                self.responses = self.responses[-250:]
-        except Exception as e:
-            logger.error(f"Message error: {e}")
-    
-    def on_error(self, ws, error):
-        logger.error(f"❌ WebSocket error: {error}")
-    
-    def on_close(self, ws, close_status_code, close_msg):
-        self.connected = False
-        self.is_running = False
-        logger.info(f"🔌 WebSocket closed")
-    
-    def send(self, data):
-        """Send message"""
-        try:
-            if self.ws:
-                self.ws.send(json.dumps(data))
+            test = yf.Ticker('EURUSD=X').history(period='1d')
+            if test is not None and len(test) > 0:
+                self.connected = True
+                logger.info("✅ Connected to Yahoo Finance")
                 return True
+            else:
+                logger.error("❌ Yahoo Finance test failed")
+                return False
+        except Exception as e:
+            logger.error(f"❌ Connection error: {e}")
             return False
-        except:
-            return False
-    
-    def wait_for_response(self, msg_type, timeout=10):
-        """Wait for specific response"""
-        start = time.time()
-        while time.time() - start < timeout:
-            for i, data in enumerate(self.responses):
-                if msg_type in data:
-                    self.responses.pop(i)
-                    return data
-            time.sleep(0.1)
-        return None
     
     def get_symbol_mapping(self, symbol):
-        """Convert symbol to Deriv format"""
-        forex_pairs = [
-            'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'NZDUSD', 'USDCHF',
-            'EURGBP', 'EURJPY', 'EURCHF', 'EURAUD', 'EURCAD', 'EURNZD',
-            'GBPJPY', 'GBPAUD', 'GBPCAD', 'GBPNZD', 'GBPCHF',
-            'AUDJPY', 'AUDCAD', 'AUDNZD', 'AUDCHF',
-            'NZDJPY', 'NZDCAD', 'NZDCHF',
-            'CADJPY', 'CHFJPY',
-            'USDTRY', 'USDZAR', 'USDMXN', 'USDSGD', 'USDHKD',
-            'EURTRY', 'EURZAR', 'EURMXN',
-            'GBPTRY', 'GBPZAR',
-            'AUDTRY', 'NZDTRY'
-        ]
-        
-        if symbol in forex_pairs:
-            return f"frx{symbol}"
-        elif symbol == 'XAUUSD':
-            return 'frxXAUUSD'
-        elif symbol == 'XAGUSD':
-            return 'frxXAGUSD'
-        else:
-            return symbol
-    
-    def _get_cache_key(self, symbol, timeframe, bars):
-        return f"{symbol}_{timeframe}_{bars}"
-    
-    def _get_from_cache(self, key):
-        """Get data from cache if valid"""
-        if key in self.cache:
-            data, timestamp = self.cache[key]
-            if (datetime.now() - timestamp).seconds < self.cache_duration:
-                return data
-            else:
-                del self.cache[key]
-        return None
-    
-    def _set_cache(self, key, data):
-        """Store data in cache"""
-        if len(self.cache) >= 100:
-            self.cache.popitem(last=False)
-        self.cache[key] = (data, datetime.now())
+        """Map symbol for Yahoo Finance"""
+        mapping = {
+            'XAUUSD': 'GC=F',
+            'XAGUSD': 'SI=F',
+            'BTCUSD': 'BTC-USD',
+            'ETHUSD': 'ETH-USD',
+            'SOLUSD': 'SOL-USD',
+            'US30': 'YM=F',
+            'NAS100': 'NQ=F',
+            'SPX500': 'ES=F',
+            'UK100': 'FTSE=F',
+            'GER30': 'DAX=F'
+        }
+        return mapping.get(symbol, f"{symbol}=X")
     
     def get_historical_data(self, symbol, timeframe, bars=100):
-        """Fetch historical candles with caching - Returns list of dicts (no pandas)"""
+        """Fetch historical data from Yahoo Finance with caching"""
         if not self.connected:
             logger.error("Not connected")
             return None
         
-        # Check cache first
-        cache_key = self._get_cache_key(symbol, timeframe, bars)
-        cached_data = self._get_from_cache(cache_key)
-        if cached_data is not None:
-            return cached_data
+        # Check cache
+        cache_key = f"{symbol}_{timeframe}_{bars}"
+        if cache_key in self.cache:
+            data, timestamp = self.cache[cache_key]
+            if (datetime.now() - timestamp).seconds < self.cache_duration:
+                logger.info(f"📦 Cache hit for {symbol}")
+                return data
         
         try:
-            deriv_symbol = self.get_symbol_mapping(symbol)
+            yahoo_symbol = self.get_symbol_mapping(symbol)
             
             tf_map = {
-                '1m': 1, '5m': 5, '15m': 15, '30m': 30,
-                '1h': 60, '4h': 240, '1d': 1440, '1w': 10080
+                '1m': '1m', '5m': '5m', '15m': '15m', '30m': '30m',
+                '1h': '60m', '4h': '60m', '1d': '1d', '1w': '1wk'
             }
-            minutes = tf_map.get(timeframe, 60)
             
-            end_time = int(time.time())
-            start_time = end_time - (bars * minutes * 60)
-            
-            if bars > 10:
-                logger.info(f"📡 Fetching {bars} candles for {symbol}...")
-            
-            self.responses = []
-            
-            request = {
-                "ticks_history": deriv_symbol,
-                "start": start_time,
-                "end": end_time,
-                "adjust_start_time": 1,
-                "style": "candles",
-                "granularity": minutes * 60
+            period_map = {
+                '1m': '2d', '5m': '5d', '15m': '7d', '30m': '14d',
+                '1h': '30d', '4h': '60d', '1d': '1y', '1w': '2y'
             }
-            self.send(request)
             
-            response = self.wait_for_response('candles', timeout=15)
+            interval = tf_map.get(timeframe, '60m')
+            period = period_map.get(timeframe, '30d')
             
-            if response and 'candles' in response:
-                candles = response['candles']
-                
-                if not candles:
-                    logger.warning(f"⚠️ No candles for {symbol}")
-                    return None
-                
-                # Convert to list of dicts (no pandas)
-                candles_list = []
-                for c in candles:
-                    candles_list.append({
-                        'time': datetime.fromtimestamp(c['epoch']).isoformat(),
-                        'epoch': c['epoch'],
-                        'open': float(c['open']),
-                        'high': float(c['high']),
-                        'low': float(c['low']),
-                        'close': float(c['close'])
-                    })
-                
-                # Sort by time
-                candles_list.sort(key=lambda x: x['epoch'])
-                
-                if bars > 10:
-                    logger.info(f"✅ Fetched {len(candles_list)} candles for {symbol}")
-                
-                # Store in cache
-                self._set_cache(cache_key, candles_list)
-                
-                return candles_list
-            else:
-                if bars > 10:
-                    logger.warning(f"⚠️ No data for {symbol}")
+            logger.info(f"📡 Fetching {symbol} from Yahoo Finance...")
+            
+            ticker = yf.Ticker(yahoo_symbol)
+            df = ticker.history(period=period, interval=interval)
+            
+            if df is None or len(df) == 0:
+                logger.warning(f"⚠️ No data for {symbol}")
                 return None
-                
+            
+            df = df.reset_index()
+            
+            if 'Datetime' in df.columns:
+                df.rename(columns={'Datetime': 'time'}, inplace=True)
+            elif 'Date' in df.columns:
+                df.rename(columns={'Date': 'time'}, inplace=True)
+            
+            df.rename(columns={
+                'Open': 'Open',
+                'High': 'High',
+                'Low': 'Low',
+                'Close': 'Close'
+            }, inplace=True)
+            
+            df['Open'] = pd.to_numeric(df['Open'])
+            df['High'] = pd.to_numeric(df['High'])
+            df['Low'] = pd.to_numeric(df['Low'])
+            df['Close'] = pd.to_numeric(df['Close'])
+            
+            df = df.sort_values('time')
+            df = df.tail(bars)
+            
+            logger.info(f"✅ Fetched {len(df)} candles for {symbol}")
+            
+            # Store in cache
+            self.cache[cache_key] = (df, datetime.now())
+            
+            return df
+            
         except Exception as e:
-            logger.error(f"Error fetching data: {e}")
+            logger.error(f"Error: {e}")
             return None
     
     def get_current_price(self, symbol):
-        """Get current price with aggressive caching"""
-        # Check price cache first (valid for 30 seconds)
-        if symbol in self.price_cache:
-            price_data, timestamp = self.price_cache[symbol]
-            if (datetime.now() - timestamp).seconds < 30:
-                return price_data
-        
+        """Get current price"""
         try:
-            deriv_symbol = self.get_symbol_mapping(symbol)
+            yahoo_symbol = self.get_symbol_mapping(symbol)
+            ticker = yf.Ticker(yahoo_symbol)
+            data = ticker.history(period='1d', interval='1m')
             
-            self.responses = []
-            
-            self.send({
-                "ticks": deriv_symbol,
-                "subscribe": False
-            })
-            
-            start = time.time()
-            while time.time() - start < 3:
-                for i, data in enumerate(self.responses):
-                    if 'tick' in data:
-                        self.responses.pop(i)
-                        if 'ask' in data['tick']:
-                            price = data['tick']['ask']
-                            result = (price - 0.0001, price)
-                            self.price_cache[symbol] = (result, datetime.now())
-                            return result
-                        elif 'quote' in data['tick']:
-                            price = data['tick']['quote']
-                            result = (price - 0.0001, price)
-                            self.price_cache[symbol] = (result, datetime.now())
-                            return result
-                time.sleep(0.1)
-            
-            # Fallback: use last close from historical data
-            logger.warning(f"⚠️ Could not get current price for {symbol}, using fallback...")
-            df = self.get_historical_data(symbol, '1m', 5)
-            if df is not None and len(df) > 0:
-                last_price = df[-1]['close']
-                result = (last_price - 0.0001, last_price)
-                self.price_cache[symbol] = (result, datetime.now())
-                return result
-            
+            if data is not None and len(data) > 0:
+                last_price = data['Close'].iloc[-1]
+                spread = 0.0005 if symbol in ['XAUUSD', 'XAGUSD'] else 0.0001
+                return last_price - spread, last_price
             return None, None
-        except Exception as e:
-            logger.error(f"❌ Price error: {e}")
+        except:
             return None, None
     
     def get_data_source(self):
@@ -282,50 +143,42 @@ class BrokerAPI:
         self.source = source
         return True
     
-    def place_order(self, symbol, action, volume, sl, tp):
-        logger.info(f"⚠️ Order function disabled: {action} {symbol}")
-        return {'order': None, 'status': 'disabled'}
-    
     def clear_cache(self):
-        """Clear all caches"""
-        self.cache.clear()
-        self.price_cache.clear()
+        self.cache = {}
         logger.info("🧹 Cache cleared")
     
     def disconnect(self):
-        """Disconnect"""
-        self.is_running = False
-        if self.ws:
-            self.ws.close()
-            self.connected = False
+        self.connected = False
 
 # Test function
 def test_broker():
     broker = BrokerAPI()
     
     print("="*50)
-    print("🔌 Testing Broker API (Public WebSocket)")
-    print("📡 No pandas required!")
+    print("🔌 Testing Yahoo Finance Connection")
     print("="*50)
     
     if broker.connect():
-        print("✅ Connected!")
+        print("✅ Connected to Yahoo Finance!")
         
-        test_symbols = ['EURUSD', 'GBPUSD']
+        print("\n📊 Fetching EURUSD 1h data...")
+        df = broker.get_historical_data('EURUSD', '1h', 20)
         
-        for symbol in test_symbols:
-            print(f"\n📊 Testing {symbol}...")
-            candles = broker.get_historical_data(symbol, '1h', 20)
-            
-            if candles and len(candles) > 0:
-                print(f"   ✅ Fetched {len(candles)} candles")
-                print(f"   📈 Latest: {candles[-1]['close']}")
-            else:
-                print(f"   ❌ No data")
+        if df is not None and len(df) > 0:
+            print(f"✅ Fetched {len(df)} candles")
+            print(df[['time', 'Open', 'Close']].tail())
+        else:
+            print("❌ No data returned")
         
-        broker.disconnect()
+        print("\n💰 Getting current price...")
+        bid, ask = broker.get_current_price('EURUSD')
+        if bid and ask:
+            print(f"✅ EURUSD: Bid={bid:.5f}, Ask={ask:.5f}")
+        else:
+            print("❌ Could not get price")
     else:
         print("❌ Connection failed!")
+        print("💡 Run: pip install yfinance")
     
     print("\n" + "="*50)
 

@@ -1,35 +1,19 @@
 """
 Mmeli_FX - Trading Configuration
-Public Data Only - No credentials needed!
+Using Yahoo Finance (Works everywhere!)
 """
 
 # ============================================
 # DATA SOURCE SETTINGS
 # ============================================
-DATA_SOURCE = 'deriv_public'
+DATA_SOURCE = 'yahoo'  # Yahoo Finance - works everywhere!
 
 # ============================================
-# ALL DERIV FOREX PAIRS
+# SYMBOLS TO MONITOR
 # ============================================
 SYMBOLS = [
-    # Major Pairs
     'EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 
     'USDCAD', 'NZDUSD', 'USDCHF',
-    
-    # Minor Pairs
-    'EURGBP', 'EURJPY', 'EURCHF', 'EURAUD', 'EURCAD', 'EURNZD',
-    'GBPJPY', 'GBPAUD', 'GBPCAD', 'GBPNZD', 'GBPCHF',
-    'AUDJPY', 'AUDCAD', 'AUDNZD', 'AUDCHF',
-    'NZDJPY', 'NZDCAD', 'NZDCHF',
-    'CADJPY', 'CHFJPY',
-    
-    # Exotics
-    'USDTRY', 'USDZAR', 'USDMXN', 'USDSGD', 'USDHKD',
-    'EURTRY', 'EURZAR', 'EURMXN',
-    'GBPTRY', 'GBPZAR',
-    'AUDTRY', 'NZDTRY',
-    
-    # Metals
     'XAUUSD', 'XAGUSD'
 ]
 
@@ -42,10 +26,10 @@ DEFAULT_TRADE_TF = '15m'
 AVAILABLE_TFS = ['1m', '5m', '15m', '30m', '1h', '4h', '1d', '1w']
 
 # ============================================
-# CACHE SETTINGS (For Speed)
+# CACHE SETTINGS
 # ============================================
-CACHE_DURATION = 30  # Cache data for 30 seconds
-MAX_CACHE_SIZE = 100  # Max items in cache
+CACHE_DURATION = 30
+MAX_CACHE_SIZE = 100
 
 # ============================================
 # TRADING RULES
@@ -60,9 +44,3 @@ DEFAULT_RULES = {
     'min_risk_reward': 2.0,
     'trend_filter': True
 }
-
-# ============================================
-# WHATSAPP SETTINGS
-# ============================================
-WHATSAPP_ENABLED = False
-WHATSAPP_PHONE = '+27645471297'
