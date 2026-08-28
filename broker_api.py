@@ -1,14 +1,14 @@
 """
-Broker API - Uses Deriv Public WebSocket with Aggressive Caching
+Broker API - Uses Deriv Public WebSocket with Caching
+NO PANDAS REQUIRED - Uses built-in Python data structures
 """
 
-import pandas as pd
 import logging
 import time
-from datetime import datetime, timedelta
 import json
 import websocket
 import threading
+from datetime import datetime
 from collections import OrderedDict
 from config import CACHE_DURATION, MAX_CACHE_SIZE
 
@@ -24,8 +24,8 @@ class BrokerAPI:
         self.is_running = False
         # Cache for speed
         self.cache = OrderedDict()
-        self.cache_duration = 60  # Cache for 60 seconds (increased from 30)
-        self.price_cache = {}  # Separate cache for prices
+        self.cache_duration = 60
+        self.price_cache = {}
         self.price_cache_time = {}
         
     def connect(self, app_id=None, token=None):
@@ -148,7 +148,7 @@ class BrokerAPI:
         self.cache[key] = (data, datetime.now())
     
     def get_historical_data(self, symbol, timeframe, bars=100):
-        """Fetch historical candles with caching"""
+        """Fetch historical candles with caching - Returns list of dicts (no pandas)"""
         if not self.connected:
             logger.error("Not connected")
             return None
@@ -171,7 +171,6 @@ class BrokerAPI:
             end_time = int(time.time())
             start_time = end_time - (bars * minutes * 60)
             
-            # Only log if not a frequent fallback call
             if bars > 10:
                 logger.info(f"📡 Fetching {bars} candles for {symbol}...")
             
@@ -196,30 +195,28 @@ class BrokerAPI:
                     logger.warning(f"⚠️ No candles for {symbol}")
                     return None
                 
-                df = pd.DataFrame(candles)
-                df['time'] = pd.to_datetime(df['epoch'], unit='s')
+                # Convert to list of dicts (no pandas)
+                candles_list = []
+                for c in candles:
+                    candles_list.append({
+                        'time': datetime.fromtimestamp(c['epoch']).isoformat(),
+                        'epoch': c['epoch'],
+                        'open': float(c['open']),
+                        'high': float(c['high']),
+                        'low': float(c['low']),
+                        'close': float(c['close'])
+                    })
                 
-                df.rename(columns={
-                    'open': 'Open',
-                    'high': 'High',
-                    'low': 'Low',
-                    'close': 'Close'
-                }, inplace=True)
-                
-                df['Open'] = pd.to_numeric(df['Open'])
-                df['High'] = pd.to_numeric(df['High'])
-                df['Low'] = pd.to_numeric(df['Low'])
-                df['Close'] = pd.to_numeric(df['Close'])
-                
-                df = df.sort_values('time')
+                # Sort by time
+                candles_list.sort(key=lambda x: x['epoch'])
                 
                 if bars > 10:
-                    logger.info(f"✅ Fetched {len(df)} candles for {symbol}")
+                    logger.info(f"✅ Fetched {len(candles_list)} candles for {symbol}")
                 
                 # Store in cache
-                self._set_cache(cache_key, df)
+                self._set_cache(cache_key, candles_list)
                 
-                return df
+                return candles_list
             else:
                 if bars > 10:
                     logger.warning(f"⚠️ No data for {symbol}")
@@ -240,7 +237,6 @@ class BrokerAPI:
         try:
             deriv_symbol = self.get_symbol_mapping(symbol)
             
-            # Clear responses for this request
             self.responses = []
             
             self.send({
@@ -265,11 +261,11 @@ class BrokerAPI:
                             return result
                 time.sleep(0.1)
             
-            # Fallback: use last close from historical data (cached)
+            # Fallback: use last close from historical data
             logger.warning(f"⚠️ Could not get current price for {symbol}, using fallback...")
             df = self.get_historical_data(symbol, '1m', 5)
             if df is not None and len(df) > 0:
-                last_price = df['Close'].iloc[-1]
+                last_price = df[-1]['close']
                 result = (last_price - 0.0001, last_price)
                 self.price_cache[symbol] = (result, datetime.now())
                 return result
@@ -309,23 +305,21 @@ def test_broker():
     
     print("="*50)
     print("🔌 Testing Broker API (Public WebSocket)")
-    print("📡 No credentials needed!")
+    print("📡 No pandas required!")
     print("="*50)
     
     if broker.connect():
         print("✅ Connected!")
         
-        test_symbols = ['EURUSD', 'GBPUSD', 'USDJPY']
+        test_symbols = ['EURUSD', 'GBPUSD']
         
         for symbol in test_symbols:
             print(f"\n📊 Testing {symbol}...")
-            # First call - should fetch
-            df1 = broker.get_historical_data(symbol, '1h', 20)
-            # Second call - should use cache
-            df2 = broker.get_historical_data(symbol, '1h', 20)
+            candles = broker.get_historical_data(symbol, '1h', 20)
             
-            if df1 is not None and len(df1) > 0:
-                print(f"   ✅ Fetched {len(df1)} candles (cached: {df2 is not None})")
+            if candles and len(candles) > 0:
+                print(f"   ✅ Fetched {len(candles)} candles")
+                print(f"   📈 Latest: {candles[-1]['close']}")
             else:
                 print(f"   ❌ No data")
         

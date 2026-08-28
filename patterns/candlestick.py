@@ -1,26 +1,12 @@
 """
-Candlestick Pattern Detection
+Candlestick Pattern Detection - No pandas required!
+Works with lists of dictionaries
 """
 
-import pandas as pd
-import numpy as np
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-def detect_all_patterns(self, df):
-    """Detect all candlestick patterns"""
-    self.patterns = []
-    
-    # Limit for speed
-    if len(df) > 150:
-        df = df.tail(150)
-    
-    if len(df) < 3:
-        return self.patterns
-    
-    # ... rest of the code remains the same
 
 class CandlePatternDetector:
     def __init__(self):
@@ -28,20 +14,20 @@ class CandlePatternDetector:
         self.doji_body_threshold = 0.0003
         self.patterns = []
         
-    def detect_all_patterns(self, df):
-        """Detect all candlestick patterns"""
+    def detect_all_patterns(self, candles):
+        """Detect all candlestick patterns - No pandas!"""
         self.patterns = []
         
-        if len(df) < 3:
+        if not candles or len(candles) < 3:
             return self.patterns
         
         try:
-            c2 = df.iloc[-2]
-            c3 = df.iloc[-1]
+            c2 = candles[-2]
+            c3 = candles[-1]
             
-            body3 = abs(c3['Close'] - c3['Open'])
-            lower_wick3 = c3['Low'] - min(c3['Open'], c3['Close'])
-            upper_wick3 = max(c3['Open'], c3['Close']) - c3['High']
+            body3 = abs(c3['close'] - c3['open'])
+            lower_wick3 = c3['low'] - min(c3['open'], c3['close'])
+            upper_wick3 = max(c3['open'], c3['close']) - c3['high']
             
             # Bullish Pin Bar
             if lower_wick3 > body3 * self.pin_bar_ratio and body3 > 0:
@@ -49,7 +35,7 @@ class CandlePatternDetector:
                     'type': 'BULLISH_PIN_BAR',
                     'strength': 'HIGH',
                     'direction': 'BULLISH',
-                    'price': c3['Close'],
+                    'price': c3['close'],
                     'candle_index': -1
                 })
             
@@ -59,49 +45,49 @@ class CandlePatternDetector:
                     'type': 'BEARISH_PIN_BAR',
                     'strength': 'HIGH',
                     'direction': 'BEARISH',
-                    'price': c3['Close'],
+                    'price': c3['close'],
                     'candle_index': -1
                 })
             
             # Bullish Engulfing
-            body2 = abs(c2['Close'] - c2['Open'])
-            if c3['Close'] > c2['Open'] and c3['Open'] < c2['Close'] and body3 > body2 and body2 > 0:
+            body2 = abs(c2['close'] - c2['open'])
+            if c3['close'] > c2['open'] and c3['open'] < c2['close'] and body3 > body2 and body2 > 0:
                 self.patterns.append({
                     'type': 'BULLISH_ENGULFING',
                     'strength': 'HIGH',
                     'direction': 'BULLISH',
-                    'price': c3['Close'],
+                    'price': c3['close'],
                     'candle_index': -1
                 })
             
             # Bearish Engulfing
-            if c3['Close'] < c2['Open'] and c3['Open'] > c2['Close'] and body3 > body2 and body2 > 0:
+            if c3['close'] < c2['open'] and c3['open'] > c2['close'] and body3 > body2 and body2 > 0:
                 self.patterns.append({
                     'type': 'BEARISH_ENGULFING',
                     'strength': 'HIGH',
                     'direction': 'BEARISH',
-                    'price': c3['Close'],
+                    'price': c3['close'],
                     'candle_index': -1
                 })
             
             # Inside Bar
-            if c3['High'] < c2['High'] and c3['Low'] > c2['Low']:
+            if c3['high'] < c2['high'] and c3['low'] > c2['low']:
                 self.patterns.append({
                     'type': 'INSIDE_BAR',
                     'strength': 'MEDIUM',
                     'direction': 'NEUTRAL',
-                    'price': c3['Close'],
+                    'price': c3['close'],
                     'candle_index': -1
                 })
             
             # Doji
-            if body3 < self.doji_body_threshold * c3['Close']:
+            if body3 < self.doji_body_threshold * c3['close']:
                 if lower_wick3 > body3 * 2 and upper_wick3 < body3 * 0.5:
                     self.patterns.append({
                         'type': 'DRAGONFLY_DOJI',
                         'strength': 'HIGH',
                         'direction': 'BULLISH',
-                        'price': c3['Close'],
+                        'price': c3['close'],
                         'candle_index': -1
                     })
                 elif upper_wick3 > body3 * 2 and lower_wick3 < body3 * 0.5:
@@ -109,7 +95,7 @@ class CandlePatternDetector:
                         'type': 'GRAVESTONE_DOJI',
                         'strength': 'HIGH',
                         'direction': 'BEARISH',
-                        'price': c3['Close'],
+                        'price': c3['close'],
                         'candle_index': -1
                     })
                 else:
@@ -117,7 +103,7 @@ class CandlePatternDetector:
                         'type': 'DOJI',
                         'strength': 'MEDIUM',
                         'direction': 'NEUTRAL',
-                        'price': c3['Close'],
+                        'price': c3['close'],
                         'candle_index': -1
                     })
             
