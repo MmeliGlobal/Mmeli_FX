@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mmeli_FX - Trading Journal</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0d1117;
+            color: #f0f6fc;
+            padding: 16px;
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #161b22; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+        .navbar {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 0 16px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .navbar-brand {
+            font-size: 16px;
+            font-weight: 700;
+            color: #58a6ff;
+            text-decoration: none;
+        }
+
+        .navbar-brand span {
+            color: #8b949e;
+            font-weight: 400;
+            font-size: 11px;
+            margin-left: 4px;
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .nav-item {
+            padding: 4px 12px;
+            border-radius: 8px;
+            color: #8b949e;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .nav-item:hover {
+            color: #f0f6fc;
+            background: #1c2333;
+        }
+
+        .nav-item.active {
+            color: #f0f6fc;
+            background: #1c2333;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            background: #1c2333;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .btn-icon:hover {
+            border-color: #58a6ff;
+            color: #f0f6fc;
+        }
+
+        /* ============================================
+           STATS GRID
+           ============================================ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .stat-card .value.green { color: #3fb950; }
+        .stat-card .value.red { color: #f85149; }
+        .stat-card .value.yellow { color: #d29922; }
+        .stat-card .value.blue { color: #58a6ff; }
+
+        .stat-card .label {
+            font-size: 10px;
+            color: #8b949e;
+            margin-top: 2px;
+        }
+
+        /* ============================================
+           JOURNAL TABLE
+           ============================================ */
+        .journal-container {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .journal-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .journal-table th {
+            background: #1c2333;
+            padding: 6px 10px;
+            text-align: left;
+            color: #8b949e;
+            font-weight: 500;
+            border-bottom: 1px solid #30363d;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .journal-table td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #21262d;
+            font-size: 11px;
+        }
+
+        .journal-table tr:hover td {
+            background: #1c2333;
+        }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        .status-badge.pending {
+            background: #d2992222;
+            color: #d29922;
+            border: 1px solid #d29922;
+        }
+
+        .status-badge.hit_tp {
+            background: #3fb95022;
+            color: #3fb950;
+            border: 1px solid #3fb950;
+        }
+
+        .status-badge.hit_sl {
+            background: #f8514922;
+            color: #f85149;
+            border: 1px solid #f85149;
+        }
+
+        .action-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 9px;
+        }
+
+        .action-badge.buy {
+            background: #3fb950;
+            color: #000;
+        }
+
+        .action-badge.sell {
+            background: #f85149;
+            color: #fff;
+        }
+
+        .no-signals {
+            text-align: center;
+            padding: 30px;
+            color: #8b949e;
+        }
+
+        .table-wrapper {
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        /* ============================================
+           FILTERS
+           ============================================ */
+        .filter-bar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding: 8px 12px;
+            border-bottom: 1px solid #30363d;
+            background: #0d1117;
+        }
+
+        .filter-bar input,
+        .filter-bar select {
+            background: #1c2333;
+            border: 1px solid #30363d;
+            color: #f0f6fc;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+        }
+
+        .filter-bar input:focus,
+        .filter-bar select:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+
+        .filter-bar input::placeholder {
+            color: #484f58;
+        }
+
+        .filter-bar .btn {
+            background: #1c2333;
+            border: 1px solid #30363d;
+            color: #8b949e;
+            padding: 3px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+
+        .filter-bar .btn:hover {
+            border-color: #58a6ff;
+            color: #f0f6fc;
+        }
+
+        .filter-bar .btn.active {
+            background: #58a6ff;
+            color: #fff;
+            border-color: #58a6ff;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .journal-table th,
+            .journal-table td {
+                font-size: 9px;
+                padding: 3px 5px;
+            }
+            .navbar { flex-wrap: wrap; height: auto; padding: 8px 12px; gap: 8px; }
+            .navbar-menu { flex-wrap: wrap; }
+            body { padding: 8px; }
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-bar input,
+            .filter-bar select,
+            .filter-bar .btn { width: 100%; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .table-wrapper { max-height: 300px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-brand">📊 Mmeli_FX <span>Trading Journal</span></div>
+        <div class="navbar-menu">
+            <a href="/" class="nav-item">📊 Charts</a>
+            <a href="/signals" class="nav-item">🔔 Signals</a>
+            <a href="/journal" class="nav-item active">📓 Journal</a>
+            <a href="/rules" class="nav-item">⚙️ Rules</a>
+        </div>
+        <div class="nav-right">
+            <button class="btn-icon" onclick="toggleTheme()">🌓</button>
+            <button class="btn-icon" onclick="refreshJournal()">⟳ Refresh</button>
+        </div>
+    </nav>
+
+    <!-- STATS -->
+    <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+            <div class="value blue" id="stat-total">0</div>
+            <div class="label">Total Trades</div>
+        </div>
+        <div class="stat-card">
+            <div class="value green" id="stat-wins">0</div>
+            <div class="label">Wins (Hit TP)</div>
+        </div>
+        <div class="stat-card">
+            <div class="value red" id="stat-losses">0</div>
+            <div class="label">Losses (Hit SL)</div>
+        </div>
+        <div class="stat-card">
+            <div class="value yellow" id="stat-pending">0</div>
+            <div class="label">Pending</div>
+        </div>
+        <div class="stat-card">
+            <div class="value green" id="stat-winrate">0%</div>
+            <div class="label">Win Rate</div>
+        </div>
+        <div class="stat-card">
+            <div class="value yellow" id="stat-avgrr">0.0</div>
+            <div class="label">Avg R:R</div>
+        </div>
+        <div class="stat-card">
+            <div class="value blue" id="stat-bestpattern">-</div>
+            <div class="label">Best Pattern</div>
+        </div>
+        <div class="stat-card">
+            <div class="value blue" id="stat-bestsymbol">-</div>
+            <div class="label">Best Symbol</div>
+        </div>
+    </div>
+
+    <!-- JOURNAL TABLE -->
+    <div class="journal-container">
+        <div class="filter-bar">
+            <input type="text" id="filter-symbol" placeholder="Symbol..." style="width:120px;">
+            <select id="filter-action">
+                <option value="all">All Actions</option>
+                <option value="BUY">BUY</option>
+                <option value="SELL">SELL</option>
+            </select>
+            <select id="filter-status">
+                <option value="all">All Status</option>
+                <option value="PENDING">Pending</option>
+                <option value="HIT_TP">Hit TP</option>
+                <option value="HIT_SL">Hit SL</option>
+            </select>
+            <select id="filter-pattern">
+                <option value="all">All Patterns</option>
+            </select>
+            <button class="btn active" id="clear-filters">Clear</button>
+        </div>
+        <div class="table-wrapper">
+            <table class="journal-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Time</th>
+                        <th>Symbol</th>
+                        <th>Action</th>
+                        <th>Pattern</th>
+                        <th>Entry</th>
+                        <th>SL</th>
+                        <th>TP</th>
+                        <th>RR</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="journal-body">
+                    <tr><td colspan="10" class="no-signals">⏳ Loading journal...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let allSignals = [];
+        let allPatterns = [];
+
+        function loadJournal() {
+            fetch('/api/journal')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        allSignals = data.signals || [];
+                        updateStats(data);
+                        updatePatterns(allSignals);
+                        applyFilters();
+                    } else {
+                        document.getElementById('journal-body').innerHTML =
+                            '<tr><td colspan="10" class="no-signals">❌ Error loading journal</td></tr>';
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('journal-body').innerHTML =
+                        '<tr><td colspan="10" class="no-signals">❌ Error loading journal</td></tr>';
+                });
+        }
+
+        function updateStats(data) {
+            document.getElementById('stat-total').textContent = data.total || 0;
+            document.getElementById('stat-wins').textContent = data.win_count || 0;
+            document.getElementById('stat-losses').textContent = data.loss_count || 0;
+            document.getElementById('stat-pending').textContent = data.pending || 0;
+            document.getElementById('stat-winrate').textContent = (data.win_rate || 0) + '%';
+            document.getElementById('stat-avgrr').textContent = data.statistics?.avg_rr || '0.0';
+            document.getElementById('stat-bestpattern').textContent = data.statistics?.best_pattern || '-';
+            document.getElementById('stat-bestsymbol').textContent = data.statistics?.best_symbol || '-';
+        }
+
+        function updatePatterns(signals) {
+            const patterns = new Set();
+            signals.forEach(s => {
+                if (s.pattern) patterns.add(s.pattern);
+            });
+            allPatterns = Array.from(patterns).sort();
+
+            const select = document.getElementById('filter-pattern');
+            // Keep current selection if exists
+            const currentVal = select.value;
+            select.innerHTML = '<option value="all">All Patterns</option>';
+            allPatterns.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                select.appendChild(opt);
+            });
+            if (allPatterns.includes(currentVal)) {
+                select.value = currentVal;
+            }
+        }
+
+        function applyFilters() {
+            const symbolFilter = document.getElementById('filter-symbol').value.toUpperCase();
+            const actionFilter = document.getElementById('filter-action').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const patternFilter = document.getElementById('filter-pattern').value;
+
+            let filtered = allSignals;
+
+            if (symbolFilter) {
+                filtered = filtered.filter(s => (s.symbol || '').toUpperCase().includes(symbolFilter));
+            }
+            if (actionFilter !== 'all') {
+                filtered = filtered.filter(s => s.action === actionFilter);
+            }
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(s => s.status === statusFilter);
+            }
+            if (patternFilter !== 'all') {
+                filtered = filtered.filter(s => s.pattern === patternFilter);
+            }
+
+            renderTable(filtered);
+        }
+
+        function renderTable(signals) {
+            const tbody = document.getElementById('journal-body');
+
+            if (!signals || signals.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="no-signals">📭 No trades found</td></tr>';
+                return;
+            }
+
+            let html = '';
+            signals.forEach((s, i) => {
+                const actionClass = s.action ? s.action.toLowerCase() : '';
+                const statusClass = (s.status || 'PENDING').toLowerCase().replace('_', '');
+                const rr = s.risk_reward || 'N/A';
+                const entry = s.entry ? s.entry.toFixed(5) : 'N/A';
+                const sl = s.stop_loss ? s.stop_loss.toFixed(5) : 'N/A';
+                const tp = s.take_profit ? s.take_profit.toFixed(5) : 'N/A';
+                const time = s.created_at ? new Date(s.created_at).toLocaleString() : 'N/A';
+
+                html += `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td style="font-size:9px;color:#8b949e;">${time}</td>
+                        <td><strong>${s.symbol || 'N/A'}</strong></td>
+                        <td><span class="action-badge ${actionClass}">${s.action || 'N/A'}</span></td>
+                        <td style="color:#8b949e;">${s.pattern || 'N/A'}</td>
+                        <td>${entry}</td>
+                        <td>${sl}</td>
+                        <td>${tp}</td>
+                        <td style="color:#d29922;">1:${rr}</td>
+                        <td><span class="status-badge ${statusClass}">${s.status || 'PENDING'}</span></td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // ============================================
+        // FILTER EVENT LISTENERS
+        // ============================================
+        document.getElementById('filter-symbol').addEventListener('input', applyFilters);
+        document.getElementById('filter-action').addEventListener('change', applyFilters);
+        document.getElementById('filter-status').addEventListener('change', applyFilters);
+        document.getElementById('filter-pattern').addEventListener('change', applyFilters);
+
+        document.getElementById('clear-filters').addEventListener('click', function() {
+            document.getElementById('filter-symbol').value = '';
+            document.getElementById('filter-action').value = 'all';
+            document.getElementById('filter-status').value = 'all';
+            document.getElementById('filter-pattern').value = 'all';
+            applyFilters();
+        });
+
+        function refreshJournal() {
+            loadJournal();
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        loadJournal();
+        setInterval(loadJournal, 60000);
+    </script>
+</body>
+</html>

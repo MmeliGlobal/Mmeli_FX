@@ -7,7 +7,7 @@
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
     <style>
         /* ============================================
-           DESKTOP FIRST (Default)
+           CSS VARIABLES & THEMING
            ============================================ */
         :root {
             --bg-primary: #0d1117;
@@ -220,7 +220,30 @@
             color: var(--text-secondary);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .panel-header .panel-title select {
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            height: 24px;
+        }
+
+        .panel-header .panel-title select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .panel-header .panel-title select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
         }
 
         .panel-header .panel-actions {
@@ -286,43 +309,6 @@
         .side-panel .panel-content {
             padding: 4px 8px;
             overflow-y: auto;
-        }
-
-        /* ============================================
-           CONTROLS
-           ============================================ */
-        .controls-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 8px;
-            padding: 4px 8px;
-            background: var(--bg-card);
-            border-radius: var(--radius);
-            border: 1px solid var(--border-color);
-            align-items: center;
-        }
-
-        .controls-row select {
-            background: var(--bg-input);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-family: inherit;
-            cursor: pointer;
-            height: 28px;
-        }
-
-        .controls-row select:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
-
-        .controls-row select option {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
         }
 
         /* ============================================
@@ -492,7 +478,7 @@
         }
 
         /* ============================================
-           MOBILE LAYOUT - ONLY ON PHONES
+           MOBILE LAYOUT
            ============================================ */
         @media (max-width: 768px) {
             body { overflow: auto; height: auto; }
@@ -504,23 +490,24 @@
             .navbar-menu { flex-wrap: wrap; }
             .navbar-brand span { display: none; }
             .nav-item { font-size: 10px; padding: 3px 8px; }
-            .controls-row select { font-size: 10px; padding: 2px 6px; height: 24px; }
+            .panel-header .panel-title select { font-size: 10px; padding: 2px 6px; height: 22px; }
             .price-line { font-size: 11px; padding: 2px 8px; }
             .price-line .price { font-size: 13px; }
             #chart { height: 280px !important; }
             .analysis-grid { grid-template-columns: 1fr 1fr; }
             .analysis-grid .full { grid-column: span 2; }
             .bottom-nav { display: flex !important; }
+            .panel-content { padding: 4px; }
         }
 
         @media (max-width: 480px) {
             .main-row { flex-direction: column; }
-            .side-panels { flex-direction: row; flex: 0 0 120px; }
+            .side-panels { flex-direction: row; flex: 0 0 100px; }
             .side-panel { min-height: 50px; }
             .navbar { padding: 0 8px; height: 40px; }
             .navbar-brand { font-size: 13px; }
-            .controls-row { gap: 4px; padding: 4px; }
-            .controls-row select { font-size: 9px; padding: 2px 4px; }
+            .panel-header { height: 28px; padding: 2px 8px; }
+            .panel-header .panel-title select { font-size: 9px; padding: 1px 4px; height: 20px; }
             .price-line { font-size: 10px; padding: 2px 6px; }
             .price-line .price { font-size: 11px; }
             .analysis-grid { grid-template-columns: 1fr; }
@@ -589,7 +576,7 @@
             <div class="navbar-menu">
                 <a href="/" class="nav-item active">📊 Charts</a>
                 <a href="/signals" class="nav-item">🔔 Signals <span class="badge" id="signal-badge">0</span></a>
-                <a href="/history" class="nav-item">📜 History</a>
+                <a href="/journal" class="nav-item">📓 Journal</a>
                 <a href="/rules" class="nav-item">⚙️ Rules</a>
             </div>
         </div>
@@ -602,38 +589,9 @@
     </nav>
 
     <!-- ==========================================
-    MAIN LAYOUT - DESKTOP
+    MAIN LAYOUT
     ========================================== -->
     <div class="main-wrapper">
-
-        <!-- CONTROLS ROW -->
-        <div class="controls-row">
-            <select id="symbol-selector">
-                <optgroup label="📊 Majors">
-                    <option value="EURUSD">EURUSD</option>
-                    <option value="GBPUSD">GBPUSD</option>
-                    <option value="USDJPY">USDJPY</option>
-                    <option value="AUDUSD">AUDUSD</option>
-                    <option value="USDCAD">USDCAD</option>
-                    <option value="NZDUSD">NZDUSD</option>
-                    <option value="USDCHF">USDCHF</option>
-                </optgroup>
-                <optgroup label="🪙 Metals">
-                    <option value="XAUUSD">🪙 XAUUSD (Gold)</option>
-                    <option value="XAGUSD">💎 XAGUSD (Silver)</option>
-                </optgroup>
-            </select>
-
-            <select id="timeframe-selector">
-                <option value="1m">1m</option>
-                <option value="5m">5m</option>
-                <option value="15m" selected>15m</option>
-                <option value="30m">30m</option>
-                <option value="1h">1h</option>
-                <option value="4h">4h</option>
-                <option value="1d">1d</option>
-            </select>
-        </div>
 
         <!-- PRICE LINE -->
         <div class="price-line" id="price-line">
@@ -647,7 +605,68 @@
             <!-- CHART PANEL -->
             <div class="panel chart-panel">
                 <div class="panel-header">
-                    <span class="panel-title">📈 <span id="chart-symbol">EURUSD</span> <span id="chart-timeframe" style="font-size:11px;color:var(--text-muted);">15m</span></span>
+                    <span class="panel-title">
+                        📈 
+                        <select id="symbol-selector">
+                            <optgroup label="📊 Majors">
+                                <option value="EURUSD">EURUSD</option>
+                                <option value="GBPUSD">GBPUSD</option>
+                                <option value="USDJPY">USDJPY</option>
+                                <option value="AUDUSD">AUDUSD</option>
+                                <option value="USDCAD">USDCAD</option>
+                                <option value="NZDUSD">NZDUSD</option>
+                                <option value="USDCHF">USDCHF</option>
+                            </optgroup>
+                            <optgroup label="📈 Minors">
+                                <option value="EURGBP">EURGBP</option>
+                                <option value="EURJPY">EURJPY</option>
+                                <option value="EURCHF">EURCHF</option>
+                                <option value="EURAUD">EURAUD</option>
+                                <option value="EURCAD">EURCAD</option>
+                                <option value="EURNZD">EURNZD</option>
+                                <option value="GBPJPY">GBPJPY</option>
+                                <option value="GBPAUD">GBPAUD</option>
+                                <option value="GBPCAD">GBPCAD</option>
+                                <option value="GBPNZD">GBPNZD</option>
+                                <option value="GBPCHF">GBPCHF</option>
+                                <option value="AUDJPY">AUDJPY</option>
+                                <option value="AUDCAD">AUDCAD</option>
+                                <option value="AUDNZD">AUDNZD</option>
+                                <option value="AUDCHF">AUDCHF</option>
+                                <option value="NZDJPY">NZDJPY</option>
+                                <option value="NZDCAD">NZDCAD</option>
+                                <option value="NZDCHF">NZDCHF</option>
+                                <option value="CADJPY">CADJPY</option>
+                                <option value="CHFJPY">CHFJPY</option>
+                            </optgroup>
+                            <optgroup label="🪙 Metals">
+                                <option value="XAUUSD">🪙 XAUUSD</option>
+                                <option value="XAGUSD">💎 XAGUSD</option>
+                            </optgroup>
+                            <optgroup label="🌍 Exotics">
+                                <option value="USDTRY">USDTRY</option>
+                                <option value="USDZAR">USDZAR</option>
+                                <option value="USDMXN">USDMXN</option>
+                                <option value="USDSGD">USDSGD</option>
+                                <option value="USDHKD">USDHKD</option>
+                                <option value="EURTRY">EURTRY</option>
+                                <option value="EURZAR">EURZAR</option>
+                                <option value="EURMXN">EURMXN</option>
+                                <option value="GBPTRY">GBPTRY</option>
+                                <option value="GBPZAR">GBPZAR</option>
+                            </optgroup>
+                        </select>
+                        <select id="timeframe-selector">
+                            <option value="1m">1m</option>
+                            <option value="5m">5m</option>
+                            <option value="15m" selected>15m</option>
+                            <option value="30m">30m</option>
+                            <option value="1h">1h</option>
+                            <option value="4h">4h</option>
+                            <option value="1d">1d</option>
+                        </select>
+                        <span id="chart-timeframe" style="font-size:11px;color:var(--text-muted);"></span>
+                    </span>
                     <div class="panel-actions">
                         <button onclick="resetChartView()" title="Reset View">⟲</button>
                         <button onclick="toggleChartFullscreen()" title="Fullscreen">⛶</button>
@@ -702,7 +721,7 @@
     <div class="bottom-nav">
         <a href="/" class="active"><span class="icon">📊</span> Charts</a>
         <a href="/signals"><span class="icon">🔔</span> Signals <span class="badge" id="bottom-badge">0</span></a>
-        <a href="/history"><span class="icon">📜</span> History</a>
+        <a href="/journal"><span class="icon">📓</span> Journal</a>
         <a href="/rules"><span class="icon">⚙️</span> Rules</a>
     </div>
 
@@ -723,7 +742,6 @@
         // ============================================
         document.getElementById('symbol-selector').addEventListener('change', function() {
             currentSymbol = this.value;
-            document.getElementById('chart-symbol').textContent = currentSymbol;
             loadChart(currentSymbol, currentTF);
         });
 
@@ -755,7 +773,6 @@
             isLoading = true;
 
             document.getElementById('price-symbol').textContent = symbol;
-            document.getElementById('chart-symbol').textContent = symbol;
             document.getElementById('chart').innerHTML = '<div class="loading">⏳ Loading ' + symbol + '...</div>';
 
             fetch('/api/analysis/' + symbol + '?tf=' + tf)
@@ -1127,7 +1144,7 @@
         loadSignals();
         updateStatus();
 
-        setInterval(refreshAll, 30000);
+        setInterval(refreshAll, 60000);
 
         window.addEventListener('resize', function() {
             const chart = document.getElementById('chart');
